@@ -21,14 +21,6 @@ from dshandler import ImageRotater
 from model import get_model
 
 num_workers = 1
-        batch_size = 4,
-        model_type = 2, # 1 if the images concat in vertical, 2 if in channel
-        lr = 1e-6,
-        momentum = 0.9,
-        scheduler_step_size = 7,
-        scheduler_gamma = 0.1,
-        mean_norm = [0.485, 0.456, 0.406],
-        std_norm = [0.229, 0.224, 0.225],
 
 # hyper-params
 def train(
