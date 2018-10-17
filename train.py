@@ -21,11 +21,11 @@ from dshandler import ImageRotater
 from model import get_model
 
 num_workers = 1
+model_type = 2 # 1 if the images concat in vertical, 2 if in channel
 
 # hyper-params
 def train(
         batch_size = 4,
-        model_type = 2, # 1 if the images concat in vertical, 2 if in channel
         lr = 1e-6,
         momentum = 0.9,
         scheduler_step_size = 7,
@@ -93,12 +93,11 @@ def main():
     op = maleo.Solver("test")
     op.set_algorithm(maleo.alg.CMAES(max_fevals=1000, populations=16))
     op.add_resource(maleo.LocalResource(
-        max_jobs=8, scheduler="taskset"))
+        max_jobs=8, scheduler="taskset 8 9 10 11 12 13 14 15"))
     op.set_function(train)
 
     # hyperparams
     op.add_variable(maleo.Scalar('batch_size', lbound=4, ubound=32, is_integer=True))
-    op.add_variable(maleo.Enum('model_type', elmts=[1,2]))
     op.add_variable(maleo.Scalar('lr', lbound=1e-10, ubound=1, logscale=True))
     op.add_variable(maleo.Scalar('momentum', lbound=0.1, ubound=1))
     op.add_variable(maleo.Scalar('scheduler_step_size', lbound=5, ubound=20, is_integer=True))
