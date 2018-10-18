@@ -4,6 +4,7 @@ This is modified file from PyTorch tutorial to take the advantage of deepmk.
 
 import time
 import os
+import shutil
 import copy
 import torch
 import torch.nn as nn
@@ -23,15 +24,15 @@ from model import get_model
 num_workers = 1
 model_type = 2 # 1 if the images concat in vertical, 2 if in channel
 
-# hyper-params
+# hyper-params (optimized using CMA-ES)
 def train(
-        batch_size = 4,
-        lr = 1e-6,
-        momentum = 0.9,
-        scheduler_step_size = 7,
-        scheduler_gamma = 0.1,
-        mean_norm = [0.485, 0.456, 0.406],
-        std_norm = [0.229, 0.224, 0.225],
+        batch_size = 13,
+        lr = 0.000260666269733471,
+        momentum = 0.8188819978260657,
+        scheduler_step_size = 12,
+        scheduler_gamma = 0.5476846394260894,
+        mean_norm=[0.15192785484028182,0.10317494370081018,0.5673184447640081],
+        std_norm=[0.17425616586457335,1.1235511510118605,0.30659749320043583],
         ):
     # data directory
     fdir = os.path.split(os.path.abspath(__file__))[0]
@@ -83,34 +84,11 @@ def train(
 
     # train the model
     model_ft = deepmk.spv.train(model_ft, dataloaders, criterion, optimizer_ft,
-        scheduler=exp_lr_scheduler, num_epochs=25, plot=0, verbose=2,
+        scheduler=exp_lr_scheduler, num_epochs=25, plot=1, verbose=2,
         save_model_to="angle-resnet.pkl")
 
     value = deepmk.spv.validate(model_ft, dataloaders["val"], criterion["val"])
     return value
 
-def main():
-    op = maleo.Solver("test")
-    op.set_algorithm(maleo.alg.CMAES(max_fevals=1000, populations=16))
-    op.add_resource(maleo.LocalResource(
-        max_jobs=8, scheduler="taskset 8 9 10 11 12 13 14 15"))
-    op.set_function(train)
-
-    # hyperparams
-    op.add_variable(maleo.Scalar('batch_size', lbound=4, ubound=32, is_integer=True))
-    op.add_variable(maleo.Scalar('lr', lbound=1e-10, ubound=1, logscale=True))
-    op.add_variable(maleo.Scalar('momentum', lbound=0.1, ubound=1))
-    op.add_variable(maleo.Scalar('scheduler_step_size', lbound=5, ubound=20, is_integer=True))
-    op.add_variable(maleo.Scalar('scheduler_gamma', lbound=0.001, ubound=1))
-    op.add_variable(maleo.Vector('mean_norm', size=3, lbounds=0, ubounds=1))
-    op.add_variable(maleo.Vector('std_norm', size=3, lbounds=0.1, ubounds=2))
-
-    # Run the process. If a file with the same name appears (e.g. "test" in
-    # this case), it will read the file and resume from where it stops.
-    res = op.run()
-
-    # print the output
-    op.print_result()
-
 if __name__ == "__main__":
-    main()
+    train()
