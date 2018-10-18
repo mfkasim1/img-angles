@@ -44,22 +44,18 @@ class ImageRotater(data.Dataset):
         fname = self.fnames[index]
         img = Image.open(os.path.join(self.root, fname))
 
-        # crop resize image
-        crop_resize_transform = transforms.RandomResizedCrop(self.imgsize)
-        img = crop_resize_transform(img)
+        # crop the image
+        transform = transforms.CenterCrop(self.imgsize)
+        img = transform(img)
 
-        # decide the angle to rotate and rotate the image
-        angle1, angle2 = np.random.random(2) * 360
-        img1 = img.rotate(angle1)
-        img2 = img.rotate(angle2)
+        # rotate the image
+        angle = np.random.randint(360)
+        rot_img = img.rotate(angle)
 
         # convert to torch tensor
         totensor = transforms.ToTensor()
-        img1 = totensor(img1)
-        img2 = totensor(img2)
-
-        # calculate the target (i.e. the relative angle between 2 images)
-        ang = (angle2 - angle1) % 360 # the angle must be [0, 360)
+        img1 = totensor(img)
+        img2 = totensor(rot_img)
 
         # apply the user-defined transform for the images
         if self.img_transform != None:
@@ -80,5 +76,5 @@ class ImageRotater(data.Dataset):
         imgcat = torch.cat((img1, img2), dim=dimcat)
 
         # normalize the target
-        target = torch.FloatTensor([ang/360.])
+        target = torch.FloatTensor([angle/360.])
         return imgcat, target
