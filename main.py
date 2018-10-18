@@ -159,6 +159,9 @@ def get_model(model_no, img_shape):
         model = Model2(img_shape)
     return model
 
+num_workers = 1
+model_type = 2 # 1 if the images concat in vertical, 2 if in channel
+
 # hyper-params
 def train(
         batch_size = 4,
@@ -171,7 +174,7 @@ def train(
         ):
     # data directory
     fdir = os.path.split(os.path.abspath(__file__))[0]
-    data_dir = os.path.join(fdir, "dataset")
+    data_dir = os.path.join(fdir, "..", "..", "dataset")
 
     # transformations of the data
     data_transforms = {
@@ -219,17 +222,16 @@ def train(
 
     # train the model
     model_ft = deepmk.spv.train(model_ft, dataloaders, criterion, optimizer_ft,
-        scheduler=exp_lr_scheduler, num_epochs=25, plot=0, verbose=2,
-        save_model_to="angle-resnet.pkl")
+        scheduler=exp_lr_scheduler, num_epochs=20, plot=0, verbose=2)
 
     value = deepmk.spv.validate(model_ft, dataloaders["val"], criterion["val"])
     return value
 
 def main():
     op = maleo.Solver("test")
-    op.set_algorithm(maleo.alg.CMAES(max_fevals=1000, populations=16))
+    op.set_algorithm(maleo.alg.CMAES(max_fevals=1000, populations=15))
     op.add_resource(maleo.LocalResource(
-        max_jobs=8, scheduler="taskset 8 9 10 11 12 13 14 15"))
+        max_jobs=15, scheduler="taskset 0 2 3 4 5 6 7 8 9 10 11 12 13 14 15"))
     op.set_function(train)
 
     # hyperparams
